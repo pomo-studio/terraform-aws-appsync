@@ -1,0 +1,39 @@
+type User {
+  userId: ID!
+  email: String!
+  name: String
+}
+
+type TickerPrice {
+  ticker: String!
+  price: Float!
+  change: Float!
+  changePercent: Float!
+  updatedAt: AWSDateTime!
+}
+
+type Query {
+  getUser(userId: ID!): User
+  getTickerPrices: [TickerPrice] @aws_api_key @aws_cognito_user_pools
+}
+
+type Mutation {
+  publishTickerUpdate(
+    ticker: String!
+    price: Float!
+    change: Float!
+    changePercent: Float!
+  ): TickerPrice @aws_iam
+}
+
+type Subscription {
+  onTickerUpdate: TickerPrice
+    @aws_subscribe(mutations: ["publishTickerUpdate"])
+    @aws_api_key @aws_cognito_user_pools
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
