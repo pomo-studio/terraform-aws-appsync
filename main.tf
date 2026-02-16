@@ -27,7 +27,7 @@ resource "aws_appsync_graphql_api" "this" {
     content {
       authentication_type = additional_authentication_provider.value.auth_type
 
-      dynamic "cognito_user_pool_config" {
+      dynamic "user_pool_config" {
         for_each = additional_authentication_provider.value.auth_type == "AMAZON_COGNITO_USER_POOLS" && additional_authentication_provider.value.cognito_user_pool_arn != null ? [1] : []
         content {
           user_pool_id = element(split(":", additional_authentication_provider.value.cognito_user_pool_arn), length(split(":", additional_authentication_provider.value.cognito_user_pool_arn)) - 1)
