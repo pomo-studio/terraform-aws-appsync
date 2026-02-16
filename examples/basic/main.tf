@@ -123,4 +123,7 @@ output "realtime_url"          { value = module.appsync.realtime_url }
 output "none_data_source_name" { value = module.appsync.none_data_source_name }
 output "data_source_names"     { value = module.appsync.data_source_names }
 output "log_group_name"        { value = module.appsync.log_group_name }
-output "api_key"               { value = module.appsync.api_key; sensitive = true }
+output "api_key" {
+  value     = module.appsync.api_key
+  sensitive = true
+}
