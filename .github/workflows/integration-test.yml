@@ -1,0 +1,118 @@
+name: Integration Test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  TFC_ORGANIZATION: Pitangaville
+  TFC_WORKSPACE: appsync-example
+
+jobs:
+  integration-test:
+    name: Apply + Destroy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apply integration test, then destroy
+        env:
+          TFC_TOKEN: ${{ secrets.TF_API_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # ---------------------------------------------------------------
+          # Helpers
+          # ---------------------------------------------------------------
+
+          tfc() { curl -sf -H "Authorization: Bearer $TFC_TOKEN" "$@"; }
+
+          # Poll a run until terminal state; approve it if waiting for confirmation.
+          # Usage: wait_for_run <run_id> <label>
+          wait_for_run() {
+            local run_id=$1 label=$2
+            for i in $(seq 1 60); do
+              STATUS=$(tfc "https://app.terraform.io/api/v2/runs/$run_id" \
+                | jq -r '.data.attributes.status')
+              echo "$label [$i/60]: $STATUS"
+              case "$STATUS" in
+                applied|planned_and_finished)
+                  echo "$label: succeeded"
+                  return 0 ;;
+                errored|canceled|force_canceled|discarded)
+                  echo "$label: FAILED ($STATUS)"
+                  return 1 ;;
+                planned|cost_estimated)
+                  echo "$label: approving..."
+                  curl -sf -X POST \
+                    -H "Authorization: Bearer $TFC_TOKEN" \
+                    -H "Content-Type: application/vnd.api+json" \
+                    -d '{"comment":"auto-approved by integration-test workflow"}' \
+                    "https://app.terraform.io/api/v2/runs/$run_id/actions/apply" > /dev/null ;;
+              esac
+              sleep 15
+            done
+            echo "$label: timed out after 15 min"
+            return 1
+          }
+
+          # ---------------------------------------------------------------
+          # 1. Resolve workspace
+          # ---------------------------------------------------------------
+          WS_ID=$(tfc "https://app.terraform.io/api/v2/organizations/$TFC_ORGANIZATION/workspaces/$TFC_WORKSPACE" \
+            | jq -r '.data.id')
+          echo "Workspace: $WS_ID"
+
+          # ---------------------------------------------------------------
+          # 2. Find the VCS-triggered run for this commit (up to 5 min)
+          # ---------------------------------------------------------------
+          COMMIT_SHA="${{ github.sha }}"
+          RUN_ID=""
+          for i in $(seq 1 30); do
+            RUN_ID=$(tfc "https://app.terraform.io/api/v2/workspaces/$WS_ID/runs?page%5Bsize%5D=5" \
+              | jq -r --arg sha "$COMMIT_SHA" \
+                '.data[] | select(.attributes["source-version"] == $sha) | .id' \
+              | head -1)
+            [ -n "$RUN_ID" ] && break
+            echo "Waiting for VCS run to appear... ($i/30)"
+            sleep 10
+          done
+
+          if [ -z "$RUN_ID" ]; then
+            echo "::warning::No run found for commit $COMMIT_SHA — using latest run"
+            RUN_ID=$(tfc "https://app.terraform.io/api/v2/workspaces/$WS_ID/runs?page%5Bsize%5D=1" \
+              | jq -r '.data[0].id')
+          fi
+          echo "Apply run: $RUN_ID"
+
+          # ---------------------------------------------------------------
+          # 3. Wait for apply to succeed
+          # ---------------------------------------------------------------
+          wait_for_run "$RUN_ID" "Apply"
+
+          # ---------------------------------------------------------------
+          # 4. Trigger destroy
+          # ---------------------------------------------------------------
+          echo "Triggering destroy run..."
+          DESTROY_ID=$(curl -sf -X POST \
+            -H "Authorization: Bearer $TFC_TOKEN" \
+            -H "Content-Type: application/vnd.api+json" \
+            -d "{
+              \"data\": {
+                \"attributes\": {
+                  \"message\": \"Auto-destroy after integration test (commit $COMMIT_SHA)\",
+                  \"is-destroy\": true
+                },
+                \"type\": \"runs\",
+                \"relationships\": {
+                  \"workspace\": {\"data\": {\"type\": \"workspaces\", \"id\": \"$WS_ID\"}}
+                }
+              }
+            }" \
+            "https://app.terraform.io/api/v2/runs" \
+            | jq -r '.data.id')
+          echo "Destroy run: $DESTROY_ID"
+
+          # ---------------------------------------------------------------
+          # 5. Wait for destroy to succeed
+          # ---------------------------------------------------------------
+          wait_for_run "$DESTROY_ID" "Destroy"
