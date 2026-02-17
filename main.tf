@@ -16,7 +16,8 @@ resource "aws_appsync_graphql_api" "this" {
   dynamic "user_pool_config" {
     for_each = var.cognito_user_pool_arn != null ? [1] : []
     content {
-      user_pool_id   = element(split(":", var.cognito_user_pool_arn), length(split(":", var.cognito_user_pool_arn)) - 1)
+      # Extract user pool ID from ARN: arn:aws:cognito-idp:REGION:ACCOUNT:userpool/POOL_ID
+      user_pool_id   = element(split("/", element(split(":", var.cognito_user_pool_arn), length(split(":", var.cognito_user_pool_arn)) - 1)), 1)
       aws_region     = element(split(":", var.cognito_user_pool_arn), 3)
       default_action = "ALLOW"
     }
@@ -30,7 +31,8 @@ resource "aws_appsync_graphql_api" "this" {
       dynamic "user_pool_config" {
         for_each = additional_authentication_provider.value.auth_type == "AMAZON_COGNITO_USER_POOLS" && additional_authentication_provider.value.cognito_user_pool_arn != null ? [1] : []
         content {
-          user_pool_id = element(split(":", additional_authentication_provider.value.cognito_user_pool_arn), length(split(":", additional_authentication_provider.value.cognito_user_pool_arn)) - 1)
+          # Extract user pool ID from ARN: arn:aws:cognito-idp:REGION:ACCOUNT:userpool/POOL_ID
+          user_pool_id = element(split("/", element(split(":", additional_authentication_provider.value.cognito_user_pool_arn), length(split(":", additional_authentication_provider.value.cognito_user_pool_arn)) - 1)), 1)
           aws_region   = element(split(":", additional_authentication_provider.value.cognito_user_pool_arn), 3)
         }
       }
