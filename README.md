@@ -2,6 +2,12 @@
 
 Opinionated Terraform module for AWS AppSync GraphQL APIs.
 
+- Cognito + AWS_IAM + API_KEY + OIDC + Lambda authorizer in any combination — one `additional_auth_modes` list
+- Per-table least-privilege IAM roles for DynamoDB data sources — never a shared policy
+- NoneDataSource always created — subscriptions work without extra setup
+- CloudWatch logging and X-Ray tracing on by default
+- Resolvers stay in the calling module — this module handles plumbing only
+
 **Registry**: `pomo-studio/appsync/aws`
 
 ## What it creates
@@ -112,7 +118,7 @@ resource "aws_appsync_resolver" "get_user" {
 |----------|---------|
 | aws | ~> 5.0 |
 
-## Opinionated defaults
+## Design decisions
 
 - Logging **on** by default at `ERROR` level
 - X-Ray **on** by default
@@ -120,3 +126,12 @@ resource "aws_appsync_resolver" "get_user" {
 - `NoneDataSource` always created
 - `realtime_url` always in outputs (subscriptions are first-class)
 - Caller owns resolvers — module handles plumbing only
+
+## Examples
+
+- [`examples/basic`](examples/basic/) — Cognito auth, single DynamoDB source
+- [`examples/complete`](examples/complete/) — multiple auth modes, DynamoDB + Lambda sources, custom domain
+
+## License
+
+MIT
