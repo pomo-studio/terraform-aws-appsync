@@ -17,8 +17,8 @@ resource "aws_appsync_graphql_api" "this" {
     for_each = var.cognito_user_pool_arn != null ? [1] : []
     content {
       # Extract user pool ID from ARN: arn:aws:cognito-idp:REGION:ACCOUNT:userpool/POOL_ID
-      user_pool_id   = element(split("/", element(split(":", var.cognito_user_pool_arn), length(split(":", var.cognito_user_pool_arn)) - 1)), 1)
-      aws_region     = element(split(":", var.cognito_user_pool_arn), 3)
+      user_pool_id   = can(regex("^arn:aws:cognito-idp:[a-z0-9-]+:[0-9]+:userpool/[a-zA-Z0-9_-]+$", var.cognito_user_pool_arn)) ? element(split("/", var.cognito_user_pool_arn), 1) : null
+      aws_region     = can(regex("^arn:aws:cognito-idp:([a-z0-9-]+):[0-9]+:userpool/[a-zA-Z0-9_-]+$", var.cognito_user_pool_arn)) ? regex("^arn:aws:cognito-idp:([a-z0-9-]+):[0-9]+:userpool/[a-zA-Z0-9_-]+$", var.cognito_user_pool_arn)[0] : null
       default_action = "ALLOW"
     }
   }
@@ -32,8 +32,8 @@ resource "aws_appsync_graphql_api" "this" {
         for_each = additional_authentication_provider.value.auth_type == "AMAZON_COGNITO_USER_POOLS" && additional_authentication_provider.value.cognito_user_pool_arn != null ? [1] : []
         content {
           # Extract user pool ID from ARN: arn:aws:cognito-idp:REGION:ACCOUNT:userpool/POOL_ID
-          user_pool_id = element(split("/", element(split(":", additional_authentication_provider.value.cognito_user_pool_arn), length(split(":", additional_authentication_provider.value.cognito_user_pool_arn)) - 1)), 1)
-          aws_region   = element(split(":", additional_authentication_provider.value.cognito_user_pool_arn), 3)
+          user_pool_id = can(regex("^arn:aws:cognito-idp:[a-z0-9-]+:[0-9]+:userpool/[a-zA-Z0-9_-]+$", additional_authentication_provider.value.cognito_user_pool_arn)) ? element(split("/", additional_authentication_provider.value.cognito_user_pool_arn), 1) : null
+          aws_region   = can(regex("^arn:aws:cognito-idp:([a-z0-9-]+):[0-9]+:userpool/[a-zA-Z0-9_-]+$", additional_authentication_provider.value.cognito_user_pool_arn)) ? regex("^arn:aws:cognito-idp:([a-z0-9-]+):[0-9]+:userpool/[a-zA-Z0-9_-]+$", additional_authentication_provider.value.cognito_user_pool_arn)[0] : null
         }
       }
 

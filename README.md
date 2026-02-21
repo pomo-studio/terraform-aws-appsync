@@ -71,17 +71,40 @@ resource "aws_appsync_resolver" "get_user" {
 }
 ```
 
-## Key outputs
+## Inputs
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `name` | `string` | required | Resource naming prefix (e.g. `"dev-my-api"`) |
+| `schema` | `string` | required | GraphQL schema string — use `file()` to load from disk |
+| `cognito_user_pool_arn` | `string` | `null` | Cognito User Pool ARN for primary auth. Null disables Cognito auth |
+| `additional_auth_modes` | `list(object)` | `[]` | Additional auth modes. Each object: `auth_type` + optional `cognito_user_pool_arn`, `oidc_issuer`, `lambda_authorizer_arn`, `lambda_authorizer_ttl`, `lambda_authorizer_regex` |
+| `dynamodb_data_sources` | `map(object)` | `{}` | DynamoDB data sources. Each key is the logical name used in `data_source_names`. Object: `table_name`, `table_arn` |
+| `lambda_data_sources` | `map(object)` | `{}` | Lambda data sources. Each key is the logical name. Object: `function_arn` |
+| `http_data_sources` | `map(object)` | `{}` | HTTP data sources. Each key is the logical name. Object: `endpoint` |
+| `enable_api_key` | `bool` | `false` | Create an API key for unauthenticated/public access |
+| `api_key_expires_days` | `number` | `365` | Days until API key expires (1–365) |
+| `enable_logging` | `bool` | `true` | Enable CloudWatch logging |
+| `log_level` | `string` | `"ERROR"` | CloudWatch log level: `NONE`, `ERROR`, or `ALL` |
+| `enable_xray` | `bool` | `true` | Enable X-Ray tracing |
+| `domain_name` | `string` | `null` | Custom domain name (e.g. `api.example.com`). Requires `route53_zone_id` and `acm_certificate_arn` |
+| `route53_zone_id` | `string` | `null` | Route53 hosted zone ID for custom domain |
+| `acm_certificate_arn` | `string` | `null` | ACM certificate ARN for custom domain (must be in same region) |
+| `tags` | `map(string)` | `{}` | Tags applied to all resources |
+
+## Outputs
 
 | Output | Description |
 |--------|-------------|
-| `api_id` | Use to attach resolvers |
+| `api_id` | AppSync GraphQL API ID — use this to attach resolvers |
 | `api_url` | HTTPS GraphQL endpoint |
-| `realtime_url` | WebSocket endpoint (wss://) for subscriptions |
-| `data_source_names` | Map of logical key → AppSync data source name |
-| `none_data_source_name` | Always `"NoneDataSource"` — for subscription resolvers |
-| `api_key` | Sensitive. Null if `enable_api_key = false` |
-| `log_group_name` | CloudWatch log group |
+| `realtime_url` | WebSocket (`wss://`) endpoint for subscriptions |
+| `data_source_names` | Map of logical key → AppSync data source name (covers DynamoDB, Lambda, HTTP sources) |
+| `none_data_source_name` | Name of the always-present None data source — use for subscription resolvers |
+| `api_key` | Sensitive. API key value. Null if `enable_api_key = false` |
+| `api_key_id` | API key ID. Null if `enable_api_key = false` |
+| `log_group_name` | CloudWatch log group name. Null if `enable_logging = false` |
+| `custom_domain_url` | HTTPS URL using custom domain. Null if no custom domain configured |
 
 ## Requirements
 

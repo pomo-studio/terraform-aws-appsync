@@ -9,9 +9,14 @@ variable "schema" {
 }
 
 variable "cognito_user_pool_arn" {
-  description = "Cognito User Pool ARN for primary auth. Null disables Cognito auth."
+  description = "Cognito User Pool ARN for primary auth. Null disables Cognito auth. Must match pattern: arn:aws:cognito-idp:REGION:ACCOUNT:userpool/POOL_ID"
   type        = string
   default     = null
+
+  validation {
+    condition     = var.cognito_user_pool_arn == null || can(regex("^arn:aws:cognito-idp:[a-z0-9-]+:[0-9]+:userpool/[a-zA-Z0-9_-]+$", var.cognito_user_pool_arn))
+    error_message = "Cognito User Pool ARN must match pattern: arn:aws:cognito-idp:REGION:ACCOUNT:userpool/POOL_ID"
+  }
 }
 
 variable "additional_auth_modes" {
