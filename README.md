@@ -79,7 +79,7 @@ resource "aws_appsync_resolver" "get_user" {
 
 ## Inputs
 
-| Variable | Type | Default | Description |
+| Name | Type | Default | Description |
 |----------|------|---------|-------------|
 | `name` | `string` | required | Resource naming prefix (e.g. `"dev-my-api"`) |
 | `schema` | `string` | required | GraphQL schema string — use `file()` to load from disk |
@@ -130,7 +130,6 @@ resource "aws_appsync_resolver" "get_user" {
 ## Examples
 
 - [`examples/basic`](examples/basic/) — Cognito auth, single DynamoDB source
-- [`examples/complete`](examples/complete/) — multiple auth modes, DynamoDB + Lambda sources, custom domain
 
 ## License
 
