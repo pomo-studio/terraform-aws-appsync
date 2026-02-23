@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `enable_dr` toggle to create a secondary AppSync API skeleton in `aws.dr`
 - DR resources for API, logging, API key, and None data source
 - DR outputs: `dr_api_id`, `dr_api_arn`, `dr_api_url`, `dr_realtime_url`, `dr_none_data_source_name`, `dr_api_key`, `dr_api_key_id`, `dr_log_group_name`
+- DR parity data source inputs: `dr_dynamodb_data_sources`, `dr_lambda_data_sources`, `dr_http_data_sources`
+- DR parity output: `dr_data_source_names`
+- New example: `examples/dr-parity`
 
 ### Changed
 - README and example updated for explicit `aws` + `aws.dr` provider wiring

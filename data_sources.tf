@@ -56,6 +56,63 @@ resource "aws_appsync_datasource" "dynamodb" {
   }
 }
 
+resource "aws_iam_role" "dynamodb_dr" {
+  for_each = var.enable_dr ? var.dr_dynamodb_data_sources : {}
+  name     = "${var.name}-appsync-dynamo-${each.key}-dr"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "appsync.amazonaws.com" }
+    }]
+  })
+
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy" "dynamodb_dr" {
+  for_each = var.enable_dr ? var.dr_dynamodb_data_sources : {}
+  name     = "${var.name}-appsync-dynamo-${each.key}-dr"
+  role     = aws_iam_role.dynamodb_dr[each.key].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Scan",
+        "dynamodb:Query",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem"
+      ]
+      Resource = [
+        each.value.table_arn,
+        "${each.value.table_arn}/index/*"
+      ]
+    }]
+  })
+}
+
+resource "aws_appsync_datasource" "dynamodb_dr" {
+  for_each         = var.enable_dr ? var.dr_dynamodb_data_sources : {}
+  provider         = aws.dr
+  api_id           = aws_appsync_graphql_api.dr[0].id
+  name             = "${replace(title(replace(each.key, "_", " ")), " ", "")}DataSource"
+  type             = "AMAZON_DYNAMODB"
+  service_role_arn = aws_iam_role.dynamodb_dr[each.key].arn
+
+  dynamodb_config {
+    table_name = each.value.table_name
+    region     = data.aws_region.current_dr[0].name
+  }
+}
+
 # Lambda data sources
 
 resource "aws_iam_role" "lambda" {
@@ -101,6 +158,50 @@ resource "aws_appsync_datasource" "lambda" {
   }
 }
 
+resource "aws_iam_role" "lambda_dr" {
+  for_each = var.enable_dr ? var.dr_lambda_data_sources : {}
+  name     = "${var.name}-appsync-lambda-${each.key}-dr"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "appsync.amazonaws.com" }
+    }]
+  })
+
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy" "lambda_dr" {
+  for_each = var.enable_dr ? var.dr_lambda_data_sources : {}
+  name     = "${var.name}-appsync-lambda-${each.key}-dr"
+  role     = aws_iam_role.lambda_dr[each.key].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = "lambda:InvokeFunction"
+      Resource = each.value.function_arn
+    }]
+  })
+}
+
+resource "aws_appsync_datasource" "lambda_dr" {
+  for_each         = var.enable_dr ? var.dr_lambda_data_sources : {}
+  provider         = aws.dr
+  api_id           = aws_appsync_graphql_api.dr[0].id
+  name             = "${replace(title(replace(each.key, "_", " ")), " ", "")}DataSource"
+  type             = "AWS_LAMBDA"
+  service_role_arn = aws_iam_role.lambda_dr[each.key].arn
+
+  lambda_config {
+    function_arn = each.value.function_arn
+  }
+}
+
 # HTTP data sources
 
 resource "aws_appsync_datasource" "http" {
@@ -114,6 +215,23 @@ resource "aws_appsync_datasource" "http" {
   }
 }
 
+resource "aws_appsync_datasource" "http_dr" {
+  for_each = var.enable_dr ? var.dr_http_data_sources : {}
+  provider = aws.dr
+  api_id   = aws_appsync_graphql_api.dr[0].id
+  name     = "${replace(title(replace(each.key, "_", " ")), " ", "")}DataSource"
+  type     = "HTTP"
+
+  http_config {
+    endpoint = each.value.endpoint
+  }
+}
+
 # Data source for current region
 
 data "aws_region" "current" {}
+
+data "aws_region" "current_dr" {
+  count    = var.enable_dr ? 1 : 0
+  provider = aws.dr
+}

@@ -203,3 +203,51 @@ run "dr_api_enabled" {
   }
 
 }
+
+run "dr_parity_data_sources" {
+  command = plan
+  providers = {
+    aws    = aws
+    aws.dr = aws.dr
+  }
+
+  variables {
+    name      = "test-api"
+    schema    = "type Query { ping: String }"
+    enable_dr = true
+
+    dr_dynamodb_data_sources = {
+      transactions = {
+        table_name = "tx-table-dr"
+        table_arn  = "arn:aws:dynamodb:us-west-2:123456789012:table/tx-table-dr"
+      }
+    }
+
+    dr_lambda_data_sources = {
+      enricher = {
+        function_arn = "arn:aws:lambda:us-west-2:123456789012:function:enricher"
+      }
+    }
+
+    dr_http_data_sources = {
+      upstream = {
+        endpoint = "https://example.com"
+      }
+    }
+  }
+
+  assert {
+    condition     = aws_appsync_datasource.dynamodb_dr["transactions"].type == "AMAZON_DYNAMODB"
+    error_message = "Should create DR DynamoDB data source when dr_dynamodb_data_sources is provided"
+  }
+
+  assert {
+    condition     = aws_appsync_datasource.lambda_dr["enricher"].type == "AWS_LAMBDA"
+    error_message = "Should create DR Lambda data source when dr_lambda_data_sources is provided"
+  }
+
+  assert {
+    condition     = aws_appsync_datasource.http_dr["upstream"].type == "HTTP"
+    error_message = "Should create DR HTTP data source when dr_http_data_sources is provided"
+  }
+}

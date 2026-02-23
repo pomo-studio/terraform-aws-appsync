@@ -47,6 +47,15 @@ output "data_source_names" {
   )
 }
 
+output "dr_data_source_names" {
+  description = "Map of logical key -> DR AppSync data source name for DR DynamoDB, Lambda, and HTTP sources. Empty map when enable_dr = false."
+  value = var.enable_dr ? merge(
+    { for k, v in aws_appsync_datasource.dynamodb_dr : k => v.name },
+    { for k, v in aws_appsync_datasource.lambda_dr : k => v.name },
+    { for k, v in aws_appsync_datasource.http_dr : k => v.name },
+  ) : {}
+}
+
 output "none_data_source_name" {
   description = "Name of the always-present None data source — use this for subscription resolvers"
   value       = aws_appsync_datasource.none.name

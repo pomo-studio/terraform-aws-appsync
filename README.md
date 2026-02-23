@@ -7,6 +7,7 @@ Opinionated Terraform module for AWS AppSync GraphQL APIs.
 - NoneDataSource always created — subscriptions work without extra setup
 - CloudWatch logging and X-Ray tracing on by default
 - Optional DR API skeleton via `enable_dr` + `aws.dr` provider alias
+- Optional DR parity data sources (`dr_dynamodb_data_sources`, `dr_lambda_data_sources`, `dr_http_data_sources`)
 - Resolvers stay in the calling module — this module handles plumbing only
 
 **Registry**: `pomo-studio/appsync/aws`
@@ -120,8 +121,11 @@ Note: when using `enable_dr = true`, pass both `aws` and `aws.dr` provider mappi
 | `cognito_user_pool_arn` | `string` | `null` | Cognito User Pool ARN for primary auth. Null disables Cognito auth |
 | `additional_auth_modes` | `list(object)` | `[]` | Additional auth modes. Each object: `auth_type` + optional `cognito_user_pool_arn`, `oidc_issuer`, `lambda_authorizer_arn`, `lambda_authorizer_ttl`, `lambda_authorizer_regex` |
 | `dynamodb_data_sources` | `map(object)` | `{}` | DynamoDB data sources. Each key is the logical name used in `data_source_names`. Object: `table_name`, `table_arn` |
+| `dr_dynamodb_data_sources` | `map(object)` | `{}` | DR DynamoDB data sources (used when `enable_dr = true`). Object: `table_name`, `table_arn` |
 | `lambda_data_sources` | `map(object)` | `{}` | Lambda data sources. Each key is the logical name. Object: `function_arn` |
+| `dr_lambda_data_sources` | `map(object)` | `{}` | DR Lambda data sources (used when `enable_dr = true`). Object: `function_arn` |
 | `http_data_sources` | `map(object)` | `{}` | HTTP data sources. Each key is the logical name. Object: `endpoint` |
+| `dr_http_data_sources` | `map(object)` | `{}` | DR HTTP data sources (used when `enable_dr = true`). Object: `endpoint` |
 | `enable_api_key` | `bool` | `false` | Create an API key for unauthenticated/public access |
 | `api_key_expires_days` | `number` | `365` | Days until API key expires (1–365) |
 | `enable_logging` | `bool` | `true` | Enable CloudWatch logging |
@@ -146,6 +150,7 @@ Note: when using `enable_dr = true`, pass both `aws` and `aws.dr` provider mappi
 | `dr_api_url` | Secondary region GraphQL endpoint. Null if `enable_dr = false` |
 | `dr_realtime_url` | Secondary region realtime endpoint. Null if `enable_dr = false` |
 | `data_source_names` | Map of logical key → AppSync data source name (covers DynamoDB, Lambda, HTTP sources) |
+| `dr_data_source_names` | Map of logical key → DR AppSync data source name (empty when `enable_dr = false`) |
 | `none_data_source_name` | Name of the always-present None data source — use for subscription resolvers |
 | `dr_none_data_source_name` | DR None data source name. Null if `enable_dr = false` |
 | `api_key` | Sensitive. API key value. Null if `enable_api_key = false` |
@@ -170,12 +175,27 @@ Note: when using `enable_dr = true`, pass both `aws` and `aws.dr` provider mappi
 - Per-data-source IAM roles (never a shared policy)
 - `NoneDataSource` always created
 - `realtime_url` always in outputs (subscriptions are first-class)
-- `enable_dr` creates a secondary API skeleton (schema/auth/logging/api key/none datasource); data sources and resolvers remain primary until app-level DR strategy is defined
+- `enable_dr` creates a secondary API and optional DR parity data sources; resolvers remain caller-owned
 - Caller owns resolvers — module handles plumbing only
+
+## HA parity contract (Level 2)
+
+When `enable_dr = true`, parity means:
+
+1. Two APIs exist with the same schema/auth baseline (primary + DR).
+2. Caller may provide equivalent DR data sources using `dr_*_data_sources` maps.
+3. Resolvers are still app-owned and must be attached to both APIs by the caller.
+
+What this module does not decide:
+
+- endpoint failover policy for clients,
+- active-active conflict semantics,
+- app-specific resolver rollout order.
 
 ## Examples
 
 - [`examples/basic`](examples/basic/) — Cognito auth, single DynamoDB source
+- [`examples/dr-parity`](examples/dr-parity/) — dual-region API with parity data source maps
 
 ## License
 
