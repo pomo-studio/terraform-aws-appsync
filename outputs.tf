@@ -3,6 +3,11 @@ output "api_id" {
   value       = aws_appsync_graphql_api.this.id
 }
 
+output "api_arn" {
+  description = "AppSync GraphQL API ARN — use this for IAM policy resource construction"
+  value       = aws_appsync_graphql_api.this.arn
+}
+
 output "api_url" {
   description = "HTTPS GraphQL endpoint"
   value       = aws_appsync_graphql_api.this.uris["GRAPHQL"]
@@ -46,4 +51,9 @@ output "log_group_name" {
 output "custom_domain_url" {
   description = "HTTPS URL using custom domain. Null if no custom domain configured."
   value       = local.custom_domain_enabled ? "https://${var.domain_name}/graphql" : null
+}
+
+output "graphql_field_arn_prefix" {
+  description = "Base ARN prefix for GraphQL field IAM resources (append /Mutation/fields/Name, etc.)"
+  value       = "${aws_appsync_graphql_api.this.arn}/types"
 }

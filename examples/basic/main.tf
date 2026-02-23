@@ -46,8 +46,7 @@ resource "aws_dynamodb_table" "items" {
 # =============================================================================
 
 module "appsync" {
-  source  = "pomo-studio/appsync/aws"
-  version = "~> 1.0.1"
+  source = "../../"
 
   name   = "example-api"
   schema = file("${path.module}/schema.graphql")
@@ -117,12 +116,12 @@ resource "aws_appsync_resolver" "on_ticker_update" {
 # Outputs — verify all key module outputs surface correctly
 # =============================================================================
 
-output "api_id"                { value = module.appsync.api_id }
-output "api_url"               { value = module.appsync.api_url }
-output "realtime_url"          { value = module.appsync.realtime_url }
+output "api_id" { value = module.appsync.api_id }
+output "api_url" { value = module.appsync.api_url }
+output "realtime_url" { value = module.appsync.realtime_url }
 output "none_data_source_name" { value = module.appsync.none_data_source_name }
-output "data_source_names"     { value = module.appsync.data_source_names }
-output "log_group_name"        { value = module.appsync.log_group_name }
+output "data_source_names" { value = module.appsync.data_source_names }
+output "log_group_name" { value = module.appsync.log_group_name }
 output "api_key" {
   value     = module.appsync.api_key
   sensitive = true
