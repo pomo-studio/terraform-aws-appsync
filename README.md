@@ -109,7 +109,7 @@ resource "aws_iam_role_policy" "lambda_appsync" {
 }
 ```
 
-Note: this module declares `aws.dr` as a provider alias for optional DR resources, so pass both `aws` and `aws.dr` provider mappings in the module block.
+Note: when using `enable_dr = true`, pass both `aws` and `aws.dr` provider mappings in the module block.
 
 ## Inputs
 
