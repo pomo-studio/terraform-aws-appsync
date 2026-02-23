@@ -8,6 +8,16 @@ output "api_arn" {
   value       = aws_appsync_graphql_api.this.arn
 }
 
+output "dr_api_id" {
+  description = "Secondary region AppSync GraphQL API ID when enable_dr = true"
+  value       = var.enable_dr ? aws_appsync_graphql_api.dr[0].id : null
+}
+
+output "dr_api_arn" {
+  description = "Secondary region AppSync GraphQL API ARN when enable_dr = true"
+  value       = var.enable_dr ? aws_appsync_graphql_api.dr[0].arn : null
+}
+
 output "api_url" {
   description = "HTTPS GraphQL endpoint"
   value       = aws_appsync_graphql_api.this.uris["GRAPHQL"]
@@ -16,6 +26,16 @@ output "api_url" {
 output "realtime_url" {
   description = "WebSocket (wss://) endpoint for AppSync subscriptions"
   value       = aws_appsync_graphql_api.this.uris["REALTIME"]
+}
+
+output "dr_api_url" {
+  description = "Secondary region HTTPS GraphQL endpoint when enable_dr = true"
+  value       = var.enable_dr ? aws_appsync_graphql_api.dr[0].uris["GRAPHQL"] : null
+}
+
+output "dr_realtime_url" {
+  description = "Secondary region WebSocket endpoint when enable_dr = true"
+  value       = var.enable_dr ? aws_appsync_graphql_api.dr[0].uris["REALTIME"] : null
 }
 
 output "data_source_names" {
@@ -32,6 +52,11 @@ output "none_data_source_name" {
   value       = aws_appsync_datasource.none.name
 }
 
+output "dr_none_data_source_name" {
+  description = "Name of DR None data source when enable_dr = true"
+  value       = var.enable_dr ? aws_appsync_datasource.none_dr[0].name : null
+}
+
 output "api_key" {
   description = "API key value. Null if enable_api_key = false."
   value       = var.enable_api_key ? aws_appsync_api_key.this[0].key : null
@@ -43,9 +68,25 @@ output "api_key_id" {
   value       = var.enable_api_key ? aws_appsync_api_key.this[0].id : null
 }
 
+output "dr_api_key" {
+  description = "Sensitive DR API key value. Null unless enable_api_key and enable_dr are true."
+  value       = var.enable_api_key && var.enable_dr ? aws_appsync_api_key.dr[0].key : null
+  sensitive   = true
+}
+
+output "dr_api_key_id" {
+  description = "DR API key ID. Null unless enable_api_key and enable_dr are true."
+  value       = var.enable_api_key && var.enable_dr ? aws_appsync_api_key.dr[0].id : null
+}
+
 output "log_group_name" {
   description = "CloudWatch log group name. Null if enable_logging = false."
   value       = var.enable_logging ? aws_cloudwatch_log_group.appsync[0].name : null
+}
+
+output "dr_log_group_name" {
+  description = "DR CloudWatch log group name when enable_dr and enable_logging are true."
+  value       = var.enable_logging && var.enable_dr ? aws_cloudwatch_log_group.appsync_dr[0].name : null
 }
 
 output "custom_domain_url" {

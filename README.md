@@ -6,6 +6,7 @@ Opinionated Terraform module for AWS AppSync GraphQL APIs.
 - Per-table least-privilege IAM roles for DynamoDB data sources — never a shared policy
 - NoneDataSource always created — subscriptions work without extra setup
 - CloudWatch logging and X-Ray tracing on by default
+- Optional DR API skeleton via `enable_dr` + `aws.dr` provider alias
 - Resolvers stay in the calling module — this module handles plumbing only
 
 **Registry**: `pomo-studio/appsync/aws`
@@ -32,9 +33,24 @@ The module handles plumbing only. Resolvers stay in the calling module — they'
 ## Usage
 
 ```hcl
+provider "aws" {
+  alias  = "primary"
+  region = "us-east-1"
+}
+
+provider "aws" {
+  alias  = "dr"
+  region = "us-west-2"
+}
+
 module "appsync" {
   source  = "pomo-studio/appsync/aws"
   version = "~> 1.1"
+
+  providers = {
+    aws    = aws.primary
+    aws.dr = aws.dr
+  }
 
   name   = "${var.env}-my-api"
   schema = file("${path.module}/schema.graphql")
@@ -47,6 +63,7 @@ module "appsync" {
   ]
 
   enable_api_key = true
+  enable_dr      = true
 
   dynamodb_data_sources = {
     users = {
@@ -92,6 +109,8 @@ resource "aws_iam_role_policy" "lambda_appsync" {
 }
 ```
 
+Note: this module declares `aws.dr` as a provider alias for optional DR resources, so pass both `aws` and `aws.dr` provider mappings in the module block.
+
 ## Inputs
 
 | Name | Type | Default | Description |
@@ -108,6 +127,7 @@ resource "aws_iam_role_policy" "lambda_appsync" {
 | `enable_logging` | `bool` | `true` | Enable CloudWatch logging |
 | `log_level` | `string` | `"ERROR"` | CloudWatch log level: `NONE`, `ERROR`, or `ALL` |
 | `enable_xray` | `bool` | `true` | Enable X-Ray tracing |
+| `enable_dr` | `bool` | `false` | Create secondary region API skeleton with provider alias `aws.dr` |
 | `domain_name` | `string` | `null` | Custom domain name (e.g. `api.example.com`). Requires `route53_zone_id` and `acm_certificate_arn` |
 | `route53_zone_id` | `string` | `null` | Route53 hosted zone ID for custom domain |
 | `acm_certificate_arn` | `string` | `null` | ACM certificate ARN for custom domain (must be in same region) |
@@ -119,13 +139,21 @@ resource "aws_iam_role_policy" "lambda_appsync" {
 |--------|-------------|
 | `api_id` | AppSync GraphQL API ID — use this to attach resolvers |
 | `api_arn` | AppSync GraphQL API ARN |
+| `dr_api_id` | Secondary region API ID. Null if `enable_dr = false` |
+| `dr_api_arn` | Secondary region API ARN. Null if `enable_dr = false` |
 | `api_url` | HTTPS GraphQL endpoint |
 | `realtime_url` | WebSocket (`wss://`) endpoint for subscriptions |
+| `dr_api_url` | Secondary region GraphQL endpoint. Null if `enable_dr = false` |
+| `dr_realtime_url` | Secondary region realtime endpoint. Null if `enable_dr = false` |
 | `data_source_names` | Map of logical key → AppSync data source name (covers DynamoDB, Lambda, HTTP sources) |
 | `none_data_source_name` | Name of the always-present None data source — use for subscription resolvers |
+| `dr_none_data_source_name` | DR None data source name. Null if `enable_dr = false` |
 | `api_key` | Sensitive. API key value. Null if `enable_api_key = false` |
 | `api_key_id` | API key ID. Null if `enable_api_key = false` |
+| `dr_api_key` | Sensitive DR API key value. Null unless `enable_api_key` and `enable_dr` are true |
+| `dr_api_key_id` | DR API key ID. Null unless `enable_api_key` and `enable_dr` are true |
 | `log_group_name` | CloudWatch log group name. Null if `enable_logging = false` |
+| `dr_log_group_name` | DR log group name. Null unless `enable_logging` and `enable_dr` are true |
 | `custom_domain_url` | HTTPS URL using custom domain. Null if no custom domain configured |
 | `graphql_field_arn_prefix` | Base ARN prefix for GraphQL IAM field resources |
 
@@ -142,6 +170,7 @@ resource "aws_iam_role_policy" "lambda_appsync" {
 - Per-data-source IAM roles (never a shared policy)
 - `NoneDataSource` always created
 - `realtime_url` always in outputs (subscriptions are first-class)
+- `enable_dr` creates a secondary API skeleton (schema/auth/logging/api key/none datasource); data sources and resolvers remain primary until app-level DR strategy is defined
 - Caller owns resolvers — module handles plumbing only
 
 ## Examples

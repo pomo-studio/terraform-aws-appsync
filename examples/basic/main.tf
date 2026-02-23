@@ -15,7 +15,13 @@ terraform {
 }
 
 provider "aws" {
+  alias  = "primary"
   region = "us-east-2"
+}
+
+provider "aws" {
+  alias  = "dr"
+  region = "us-west-2"
 }
 
 # =============================================================================
@@ -23,7 +29,8 @@ provider "aws" {
 # =============================================================================
 
 resource "aws_cognito_user_pool" "main" {
-  name = "example-user-pool"
+  provider = aws.primary
+  name     = "example-user-pool"
 
   email_configuration {
     email_sending_account = "COGNITO_DEFAULT"
@@ -31,6 +38,7 @@ resource "aws_cognito_user_pool" "main" {
 }
 
 resource "aws_dynamodb_table" "items" {
+  provider     = aws.primary
   name         = "example-items"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "id"
@@ -47,6 +55,11 @@ resource "aws_dynamodb_table" "items" {
 
 module "appsync" {
   source = "../../"
+
+  providers = {
+    aws    = aws.primary
+    aws.dr = aws.dr
+  }
 
   name   = "example-api"
   schema = file("${path.module}/schema.graphql")
@@ -76,6 +89,7 @@ module "appsync" {
 # =============================================================================
 
 resource "aws_appsync_resolver" "get_user" {
+  provider    = aws.primary
   api_id      = module.appsync.api_id
   type        = "Query"
   field       = "getUser"
@@ -96,6 +110,7 @@ resource "aws_appsync_resolver" "get_user" {
 }
 
 resource "aws_appsync_resolver" "on_ticker_update" {
+  provider    = aws.primary
   api_id      = module.appsync.api_id
   type        = "Subscription"
   field       = "onTickerUpdate"
