@@ -41,6 +41,15 @@ variable "dynamodb_data_sources" {
   default = {}
 }
 
+variable "dr_dynamodb_data_sources" {
+  description = "DR-region DynamoDB data sources used when enable_dr = true. Each key becomes the logical name used in dr_data_source_names output."
+  type = map(object({
+    table_name = string
+    table_arn  = string
+  }))
+  default = {}
+}
+
 variable "lambda_data_sources" {
   description = "Lambda data sources. Each key becomes the logical name used in data_source_names output."
   type = map(object({
@@ -49,8 +58,24 @@ variable "lambda_data_sources" {
   default = {}
 }
 
+variable "dr_lambda_data_sources" {
+  description = "DR-region Lambda data sources used when enable_dr = true. Each key becomes the logical name used in dr_data_source_names output."
+  type = map(object({
+    function_arn = string
+  }))
+  default = {}
+}
+
 variable "http_data_sources" {
   description = "HTTP data sources. Each key becomes the logical name used in data_source_names output."
+  type = map(object({
+    endpoint = string
+  }))
+  default = {}
+}
+
+variable "dr_http_data_sources" {
+  description = "DR-region HTTP data sources used when enable_dr = true. Each key becomes the logical name used in dr_data_source_names output."
   type = map(object({
     endpoint = string
   }))

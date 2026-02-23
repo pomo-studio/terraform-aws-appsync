@@ -11,3 +11,4 @@ fmt:
 ## Validate all examples
 validate:
 	cd examples/basic && terraform init -backend=false -upgrade && terraform validate
+	cd examples/dr-parity && terraform init -backend=false -upgrade && terraform validate

@@ -1,0 +1,23 @@
+type Transaction {
+  id: ID!
+  amount: Float!
+}
+
+type Query {
+  listTransactions: [Transaction!]!
+}
+
+type Mutation {
+  notifyTransaction(id: ID!, amount: Float!): Transaction!
+}
+
+type Subscription {
+  onTransactionAdded: Transaction!
+    @aws_subscribe(mutations: ["notifyTransaction"])
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
