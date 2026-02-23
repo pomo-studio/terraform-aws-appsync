@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README and example updated for explicit `aws` + `aws.dr` provider wiring
 - Unit tests expanded with DR-enabled coverage
 
+### Documentation
+- Added DR quickstart guide: `docs/enable-dr.md`
+- Added troubleshooting matrix to `docs/ha-failover.md` for common DR onboarding and drill failures
+- Linked DR quickstart from README Level 3 operations section
+
 ## [1.1.0] - 2026-02-22
 
 ### Added
