@@ -91,6 +91,12 @@ variable "enable_xray" {
   default     = true
 }
 
+variable "enable_dr" {
+  description = "When true, create a secondary AppSync API in the aws.dr provider with matching schema/auth/log settings"
+  type        = bool
+  default     = false
+}
+
 variable "domain_name" {
   description = "Custom domain name for the AppSync API (e.g. api.example.com). Requires route53_zone_id and acm_certificate_arn."
   type        = string

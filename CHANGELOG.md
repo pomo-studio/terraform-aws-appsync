@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `enable_dr` toggle to create a secondary AppSync API skeleton in `aws.dr`
+- DR resources for API, logging, API key, and None data source
+- DR outputs: `dr_api_id`, `dr_api_arn`, `dr_api_url`, `dr_realtime_url`, `dr_none_data_source_name`, `dr_api_key`, `dr_api_key_id`, `dr_log_group_name`
+
+### Changed
+- README and example updated for explicit `aws` + `aws.dr` provider wiring
+- Unit tests expanded with DR-enabled coverage
+
 ## [1.1.0] - 2026-02-22
 
 ### Added
@@ -79,6 +90,7 @@ All users should upgrade to v1.0.2 to benefit from the improved ARN validation. 
 - **Modular design**: Data sources as separate resources
 
 [1.1.0]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.0.3...v1.1.0
+[Unreleased]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.1.0...HEAD
 [1.0.3]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.0.0...v1.0.1
