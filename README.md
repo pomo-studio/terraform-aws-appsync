@@ -192,6 +192,11 @@ What this module does not decide:
 - active-active conflict semantics,
 - app-specific resolver rollout order.
 
+## Level 3 operations
+
+- Failover strategy and runbook: [`docs/ha-failover.md`](docs/ha-failover.md)
+- Smoke helper script: `scripts/smoke-failover.sh`
+
 ## Examples
 
 - [`examples/basic`](examples/basic/) — Cognito auth, single DynamoDB source
