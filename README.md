@@ -194,6 +194,7 @@ What this module does not decide:
 
 ## Level 3 operations
 
+- DR enablement quickstart: [`docs/enable-dr.md`](docs/enable-dr.md)
 - Failover strategy and runbook: [`docs/ha-failover.md`](docs/ha-failover.md)
 - Smoke helper script: `scripts/smoke-failover.sh`
 
