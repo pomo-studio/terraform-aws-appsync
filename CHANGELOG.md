@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DR parity data source inputs: `dr_dynamodb_data_sources`, `dr_lambda_data_sources`, `dr_http_data_sources`
 - DR parity output: `dr_data_source_names`
 - New example: `examples/dr-parity`
+- HA operations doc: `docs/ha-failover.md`
+- failover smoke helper: `scripts/smoke-failover.sh`
 
 ### Changed
 - README and example updated for explicit `aws` + `aws.dr` provider wiring
