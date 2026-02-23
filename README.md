@@ -34,7 +34,7 @@ The module handles plumbing only. Resolvers stay in the calling module — they'
 ```hcl
 module "appsync" {
   source  = "pomo-studio/appsync/aws"
-  version = "~> 1.0"
+  version = "~> 1.1"
 
   name   = "${var.env}-my-api"
   schema = file("${path.module}/schema.graphql")
@@ -75,6 +75,21 @@ resource "aws_appsync_resolver" "get_user" {
   }
   code = file("${path.module}/resolvers/get_user.js")
 }
+
+# Example: IAM policy for Lambda mutation access
+resource "aws_iam_role_policy" "lambda_appsync" {
+  name = "my-lambda-appsync"
+  role = aws_iam_role.my_lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = "appsync:GraphQL"
+      Resource = "${module.appsync.graphql_field_arn_prefix}/Mutation/fields/notifyTransaction"
+    }]
+  })
+}
 ```
 
 ## Inputs
@@ -103,6 +118,7 @@ resource "aws_appsync_resolver" "get_user" {
 | Output | Description |
 |--------|-------------|
 | `api_id` | AppSync GraphQL API ID — use this to attach resolvers |
+| `api_arn` | AppSync GraphQL API ARN |
 | `api_url` | HTTPS GraphQL endpoint |
 | `realtime_url` | WebSocket (`wss://`) endpoint for subscriptions |
 | `data_source_names` | Map of logical key → AppSync data source name (covers DynamoDB, Lambda, HTTP sources) |
@@ -111,6 +127,7 @@ resource "aws_appsync_resolver" "get_user" {
 | `api_key_id` | API key ID. Null if `enable_api_key = false` |
 | `log_group_name` | CloudWatch log group name. Null if `enable_logging = false` |
 | `custom_domain_url` | HTTPS URL using custom domain. Null if no custom domain configured |
+| `graphql_field_arn_prefix` | Base ARN prefix for GraphQL IAM field resources |
 
 ## Requirements
 
