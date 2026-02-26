@@ -22,28 +22,38 @@ resource "aws_cognito_user_pool" "main" {
   name     = "dr-parity-user-pool"
 }
 
-resource "aws_dynamodb_table" "transactions_primary" {
-  provider     = aws.primary
-  name         = "dr-parity-transactions-primary"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "id"
+module "transactions_primary_table" {
+  source  = "pomo-studio/dynamodb-global-table/aws"
+  version = "= 1.0.0"
 
-  attribute {
-    name = "id"
-    type = "S"
+  providers = {
+    aws.primary = aws.primary
+    aws.dr      = aws.dr
   }
+
+  name           = "dr-parity-transactions-primary"
+  hash_key       = "id"
+  attributes     = [{ name = "id", type = "S" }]
+  enable_dr      = false
+  enable_pitr    = false
+  enable_streams = false
 }
 
-resource "aws_dynamodb_table" "transactions_dr" {
-  provider     = aws.dr
-  name         = "dr-parity-transactions-dr"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "id"
+module "transactions_dr_table" {
+  source  = "pomo-studio/dynamodb-global-table/aws"
+  version = "= 1.0.0"
 
-  attribute {
-    name = "id"
-    type = "S"
+  providers = {
+    aws.primary = aws.dr
+    aws.dr      = aws.dr
   }
+
+  name           = "dr-parity-transactions-dr"
+  hash_key       = "id"
+  attributes     = [{ name = "id", type = "S" }]
+  enable_dr      = false
+  enable_pitr    = false
+  enable_streams = false
 }
 
 module "appsync" {
@@ -66,15 +76,15 @@ module "appsync" {
 
   dynamodb_data_sources = {
     transactions = {
-      table_name = aws_dynamodb_table.transactions_primary.name
-      table_arn  = aws_dynamodb_table.transactions_primary.arn
+      table_name = module.transactions_primary_table.table_name_primary
+      table_arn  = module.transactions_primary_table.table_arn_primary
     }
   }
 
   dr_dynamodb_data_sources = {
     transactions = {
-      table_name = aws_dynamodb_table.transactions_dr.name
-      table_arn  = aws_dynamodb_table.transactions_dr.arn
+      table_name = module.transactions_dr_table.table_name_primary
+      table_arn  = module.transactions_dr_table.table_arn_primary
     }
   }
 

@@ -37,16 +37,21 @@ resource "aws_cognito_user_pool" "main" {
   }
 }
 
-resource "aws_dynamodb_table" "items" {
-  provider     = aws.primary
-  name         = "example-items"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "id"
+module "items_table" {
+  source  = "pomo-studio/dynamodb-global-table/aws"
+  version = "= 1.0.0"
 
-  attribute {
-    name = "id"
-    type = "S"
+  providers = {
+    aws.primary = aws.primary
+    aws.dr      = aws.dr
   }
+
+  name           = "example-items"
+  hash_key       = "id"
+  attributes     = [{ name = "id", type = "S" }]
+  enable_dr      = false
+  enable_pitr    = false
+  enable_streams = false
 }
 
 # =============================================================================
@@ -76,8 +81,8 @@ module "appsync" {
 
   dynamodb_data_sources = {
     items = {
-      table_name = aws_dynamodb_table.items.name
-      table_arn  = aws_dynamodb_table.items.arn
+      table_name = module.items_table.table_name_primary
+      table_arn  = module.items_table.table_arn_primary
     }
   }
 
