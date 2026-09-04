@@ -1,0 +1,105 @@
+name: Terraform Validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.tf'
+      - '**.tfvars'
+      - '.tflint.hcl'
+      - '.github/workflows/terraform.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - '**.tf'
+      - '**.tfvars'
+      - '.tflint.hcl'
+      - '.github/workflows/terraform.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: terraform-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fmt:
+    name: Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.16.1"
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+  validate:
+    name: Validate (${{ matrix.dir }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: [".", "examples/basic", "examples/dr-parity"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.16.1"
+
+      # The root module declares configuration_aliases (aws.dr), so
+      # terraform validate needs a mock provider configuration for that alias.
+      # These mocks are safe — terraform validate does not authenticate to AWS.
+      # Note: must NOT use _override.tf suffix (Terraform treats those as override files).
+      - name: Write CI provider stubs
+        if: matrix.dir == '.'
+        working-directory: ${{ matrix.dir }}
+        run: |
+          cat > ci_providers.tf << 'EOF'
+          provider "aws" {
+            alias                       = "dr"
+            region                      = "us-west-2"
+            skip_credentials_validation = true
+            skip_requesting_account_id  = true
+            skip_metadata_api_check     = true
+            access_key                  = "mock"
+            secret_key                  = "mock"
+          }
+          EOF
+
+      - name: Terraform Init
+        working-directory: ${{ matrix.dir }}
+        run: terraform init -backend=false
+
+      - name: Terraform Validate
+        working-directory: ${{ matrix.dir }}
+        run: terraform validate
+
+      - name: Remove CI provider stubs
+        if: matrix.dir == '.'
+        working-directory: ${{ matrix.dir }}
+        run: rm ci_providers.tf
+
+  tflint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v6
+        with:
+          tflint_version: latest
+
+      - name: Init TFLint
+        run: tflint --init
+
+      - name: Run TFLint
+        run: tflint -f compact --recursive
