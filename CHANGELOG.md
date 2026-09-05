@@ -1,11 +1,35 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this module are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/).
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.2.3] - 2026-09-05
 
-## [Unreleased]
+### Added
+- CHANGELOG.md
+
+## [1.2.2] - 2026-09-04
+
+### Added
+- CI and release workflows (existing `integration-test.yml` untouched)
+- `.tflint.hcl` lint configuration
+- MIT `LICENSE`
+- README badges
+- Committed lock files
+
+### Changed
+- AWS provider version constraint relaxed to `>= 5.0, < 7.0`
+
+### Fixed
+- Declared `configuration_aliases = [aws.dr]` — the module referenced the `aws.dr` provider alias without declaring it
+
+## [1.2.1] - 2026-02-23
+
+### Documentation
+- Added DR quickstart guide: `docs/enable-dr.md`
+- Added troubleshooting matrix to `docs/ha-failover.md` for common DR onboarding and drill failures
+- Linked DR quickstart from README Level 3 operations section
+
+## [1.2.0] - 2026-02-23
 
 ### Added
 - `enable_dr` toggle to create a secondary AppSync API skeleton in `aws.dr`
@@ -20,11 +44,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - README and example updated for explicit `aws` + `aws.dr` provider wiring
 - Unit tests expanded with DR-enabled coverage
-
-### Documentation
-- Added DR quickstart guide: `docs/enable-dr.md`
-- Added troubleshooting matrix to `docs/ha-failover.md` for common DR onboarding and drill failures
-- Linked DR quickstart from README Level 3 operations section
 
 ## [1.1.0] - 2026-02-22
 
@@ -99,8 +118,13 @@ All users should upgrade to v1.0.2 to benefit from the improved ARN validation. 
 - **Developer-friendly**: Validation prevents common mistakes
 - **Modular design**: Data sources as separate resources
 
+> Historical releases are documented in [GitHub Releases](https://github.com/pomo-studio/terraform-aws-appsync/releases).
+
+[1.2.3]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.2.2...v1.2.3
+[1.2.2]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.2.1...v1.2.2
+[1.2.1]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.0.3...v1.2.0
 [1.1.0]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.0.3...v1.1.0
-[Unreleased]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.1.0...HEAD
 [1.0.3]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.0.0...v1.0.1
