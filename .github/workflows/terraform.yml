@@ -8,6 +8,7 @@ on:
       - '**.tfvars'
       - '.tflint.hcl'
       - '.github/workflows/terraform.yml'
+      - '.github/workflows/interface-docs.yml'
   pull_request:
     branches: [main]
     paths:
@@ -15,6 +16,7 @@ on:
       - '**.tfvars'
       - '.tflint.hcl'
       - '.github/workflows/terraform.yml'
+      - '.github/workflows/interface-docs.yml'
   workflow_dispatch:
 
 concurrency:

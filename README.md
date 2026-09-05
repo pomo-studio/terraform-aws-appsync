@@ -211,3 +211,115 @@ What this module does not decide:
 ## License
 
 MIT
+
+## Maintaining This Module
+
+The generated interface below is authoritative for requirements, providers, resources, inputs, and outputs. Regenerate with `terraform-docs` **v0.20.0**: `terraform-docs .`. CI fails on drift; keep explanatory prose outside the generated markers.
+
+See the [contribution guide](https://github.com/pomo-studio/.github/blob/main/CONTRIBUTING.md) and [security policy](https://github.com/pomo-studio/.github/blob/main/SECURITY.md). PR validation does not prove a live plan or deployment. Infrastructure plans and applies belong in Terraform Cloud; never provide cloud credentials to untrusted PR code.
+
+<!-- BEGIN_TF_DOCS -->
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0, < 7.0 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.63.0 |
+| <a name="provider_aws.dr"></a> [aws.dr](#provider\_aws.dr) | 6.63.0 |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [aws_appsync_api_key.dr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_api_key) | resource |
+| [aws_appsync_api_key.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_api_key) | resource |
+| [aws_appsync_datasource.dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_datasource) | resource |
+| [aws_appsync_datasource.dynamodb_dr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_datasource) | resource |
+| [aws_appsync_datasource.http](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_datasource) | resource |
+| [aws_appsync_datasource.http_dr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_datasource) | resource |
+| [aws_appsync_datasource.lambda](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_datasource) | resource |
+| [aws_appsync_datasource.lambda_dr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_datasource) | resource |
+| [aws_appsync_datasource.none](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_datasource) | resource |
+| [aws_appsync_datasource.none_dr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_datasource) | resource |
+| [aws_appsync_domain_name.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_domain_name) | resource |
+| [aws_appsync_domain_name_api_association.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_domain_name_api_association) | resource |
+| [aws_appsync_graphql_api.dr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_graphql_api) | resource |
+| [aws_appsync_graphql_api.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_graphql_api) | resource |
+| [aws_cloudwatch_log_group.appsync](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
+| [aws_cloudwatch_log_group.appsync_dr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
+| [aws_iam_role.appsync_logging](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role.appsync_logging_dr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role.dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role.dynamodb_dr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role.lambda](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role.lambda_dr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy.appsync_logging](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_iam_role_policy.appsync_logging_dr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_iam_role_policy.dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_iam_role_policy.dynamodb_dr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_iam_role_policy.lambda](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_iam_role_policy.lambda_dr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_route53_record.appsync](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
+| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
+| [aws_region.current_dr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_acm_certificate_arn"></a> [acm\_certificate\_arn](#input\_acm\_certificate\_arn) | ACM certificate ARN for custom domain (must be in same region) | `string` | `null` | no |
+| <a name="input_additional_auth_modes"></a> [additional\_auth\_modes](#input\_additional\_auth\_modes) | Additional authentication modes beyond the primary. Each object needs auth\_type plus optional config for OIDC/Lambda/API\_KEY modes. | <pre>list(object({<br/>    auth_type               = string<br/>    cognito_user_pool_arn   = optional(string)<br/>    oidc_issuer             = optional(string)<br/>    lambda_authorizer_arn   = optional(string)<br/>    lambda_authorizer_ttl   = optional(number, 300)<br/>    lambda_authorizer_regex = optional(string)<br/>  }))</pre> | `[]` | no |
+| <a name="input_api_key_expires_days"></a> [api\_key\_expires\_days](#input\_api\_key\_expires\_days) | Number of days until the API key expires (1-365) | `number` | `365` | no |
+| <a name="input_cognito_user_pool_arn"></a> [cognito\_user\_pool\_arn](#input\_cognito\_user\_pool\_arn) | Cognito User Pool ARN for primary auth. Null disables Cognito auth. Must match pattern: arn:aws:cognito-idp:REGION:ACCOUNT:userpool/POOL\_ID | `string` | `null` | no |
+| <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Custom domain name for the AppSync API (e.g. api.example.com). Requires route53\_zone\_id and acm\_certificate\_arn. | `string` | `null` | no |
+| <a name="input_dr_dynamodb_data_sources"></a> [dr\_dynamodb\_data\_sources](#input\_dr\_dynamodb\_data\_sources) | DR-region DynamoDB data sources used when enable\_dr = true. Each key becomes the logical name used in dr\_data\_source\_names output. | <pre>map(object({<br/>    table_name = string<br/>    table_arn  = string<br/>  }))</pre> | `{}` | no |
+| <a name="input_dr_http_data_sources"></a> [dr\_http\_data\_sources](#input\_dr\_http\_data\_sources) | DR-region HTTP data sources used when enable\_dr = true. Each key becomes the logical name used in dr\_data\_source\_names output. | <pre>map(object({<br/>    endpoint = string<br/>  }))</pre> | `{}` | no |
+| <a name="input_dr_lambda_data_sources"></a> [dr\_lambda\_data\_sources](#input\_dr\_lambda\_data\_sources) | DR-region Lambda data sources used when enable\_dr = true. Each key becomes the logical name used in dr\_data\_source\_names output. | <pre>map(object({<br/>    function_arn = string<br/>  }))</pre> | `{}` | no |
+| <a name="input_dynamodb_data_sources"></a> [dynamodb\_data\_sources](#input\_dynamodb\_data\_sources) | DynamoDB data sources. Each key becomes the logical name used in data\_source\_names output. | <pre>map(object({<br/>    table_name = string<br/>    table_arn  = string<br/>  }))</pre> | `{}` | no |
+| <a name="input_enable_api_key"></a> [enable\_api\_key](#input\_enable\_api\_key) | Create an API key for unauthenticated/public access | `bool` | `false` | no |
+| <a name="input_enable_dr"></a> [enable\_dr](#input\_enable\_dr) | When true, create a secondary AppSync API in the aws.dr provider with matching schema/auth/log settings | `bool` | `false` | no |
+| <a name="input_enable_logging"></a> [enable\_logging](#input\_enable\_logging) | Enable CloudWatch logging for the AppSync API | `bool` | `true` | no |
+| <a name="input_enable_xray"></a> [enable\_xray](#input\_enable\_xray) | Enable X-Ray tracing for the AppSync API | `bool` | `true` | no |
+| <a name="input_http_data_sources"></a> [http\_data\_sources](#input\_http\_data\_sources) | HTTP data sources. Each key becomes the logical name used in data\_source\_names output. | <pre>map(object({<br/>    endpoint = string<br/>  }))</pre> | `{}` | no |
+| <a name="input_lambda_data_sources"></a> [lambda\_data\_sources](#input\_lambda\_data\_sources) | Lambda data sources. Each key becomes the logical name used in data\_source\_names output. | <pre>map(object({<br/>    function_arn = string<br/>  }))</pre> | `{}` | no |
+| <a name="input_log_level"></a> [log\_level](#input\_log\_level) | AppSync field-level CloudWatch log level: NONE, ERROR, or ALL | `string` | `"ERROR"` | no |
+| <a name="input_name"></a> [name](#input\_name) | Resource naming prefix (e.g. 'dev-vue-appsync') | `string` | n/a | yes |
+| <a name="input_route53_zone_id"></a> [route53\_zone\_id](#input\_route53\_zone\_id) | Route53 hosted zone ID for custom domain DNS record | `string` | `null` | no |
+| <a name="input_schema"></a> [schema](#input\_schema) | GraphQL schema string (use file() to load from disk) | `string` | n/a | yes |
+| <a name="input_tags"></a> [tags](#input\_tags) | Tags applied to all resources | `map(string)` | `{}` | no |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_api_arn"></a> [api\_arn](#output\_api\_arn) | AppSync GraphQL API ARN — use this for IAM policy resource construction |
+| <a name="output_api_id"></a> [api\_id](#output\_api\_id) | AppSync GraphQL API ID — use this to attach resolvers in the calling module |
+| <a name="output_api_key"></a> [api\_key](#output\_api\_key) | API key value. Null if enable\_api\_key = false. |
+| <a name="output_api_key_id"></a> [api\_key\_id](#output\_api\_key\_id) | API key ID. Null if enable\_api\_key = false. |
+| <a name="output_api_url"></a> [api\_url](#output\_api\_url) | HTTPS GraphQL endpoint |
+| <a name="output_custom_domain_url"></a> [custom\_domain\_url](#output\_custom\_domain\_url) | HTTPS URL using custom domain. Null if no custom domain configured. |
+| <a name="output_data_source_names"></a> [data\_source\_names](#output\_data\_source\_names) | Map of logical key → AppSync data source name for DynamoDB, Lambda, and HTTP sources. Keys match the map keys passed in dynamodb\_data\_sources, lambda\_data\_sources, and http\_data\_sources. |
+| <a name="output_dr_api_arn"></a> [dr\_api\_arn](#output\_dr\_api\_arn) | Secondary region AppSync GraphQL API ARN when enable\_dr = true |
+| <a name="output_dr_api_id"></a> [dr\_api\_id](#output\_dr\_api\_id) | Secondary region AppSync GraphQL API ID when enable\_dr = true |
+| <a name="output_dr_api_key"></a> [dr\_api\_key](#output\_dr\_api\_key) | Sensitive DR API key value. Null unless enable\_api\_key and enable\_dr are true. |
+| <a name="output_dr_api_key_id"></a> [dr\_api\_key\_id](#output\_dr\_api\_key\_id) | DR API key ID. Null unless enable\_api\_key and enable\_dr are true. |
+| <a name="output_dr_api_url"></a> [dr\_api\_url](#output\_dr\_api\_url) | Secondary region HTTPS GraphQL endpoint when enable\_dr = true |
+| <a name="output_dr_data_source_names"></a> [dr\_data\_source\_names](#output\_dr\_data\_source\_names) | Map of logical key -> DR AppSync data source name for DR DynamoDB, Lambda, and HTTP sources. Empty map when enable\_dr = false. |
+| <a name="output_dr_log_group_name"></a> [dr\_log\_group\_name](#output\_dr\_log\_group\_name) | DR CloudWatch log group name when enable\_dr and enable\_logging are true. |
+| <a name="output_dr_none_data_source_name"></a> [dr\_none\_data\_source\_name](#output\_dr\_none\_data\_source\_name) | Name of DR None data source when enable\_dr = true |
+| <a name="output_dr_realtime_url"></a> [dr\_realtime\_url](#output\_dr\_realtime\_url) | Secondary region WebSocket endpoint when enable\_dr = true |
+| <a name="output_graphql_field_arn_prefix"></a> [graphql\_field\_arn\_prefix](#output\_graphql\_field\_arn\_prefix) | Base ARN prefix for GraphQL field IAM resources (append /Mutation/fields/Name, etc.) |
+| <a name="output_log_group_name"></a> [log\_group\_name](#output\_log\_group\_name) | CloudWatch log group name. Null if enable\_logging = false. |
+| <a name="output_none_data_source_name"></a> [none\_data\_source\_name](#output\_none\_data\_source\_name) | Name of the always-present None data source — use this for subscription resolvers |
+| <a name="output_realtime_url"></a> [realtime\_url](#output\_realtime\_url) | WebSocket (wss://) endpoint for AppSync subscriptions |
+<!-- END_TF_DOCS -->

@@ -1,118 +1,59 @@
-name: Integration Test
+name: Terraform Cloud Example Plan
 
+# Explicit trusted dispatch only. Never approve, apply, destroy, or use latest-run fallback.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      configuration_version:
+        description: Existing speculative VCS configuration version for a reviewed commit (cv-...)
+        required: true
+      commit_sha:
+        description: Full reviewed commit SHA in this repository
+        required: true
 
-env:
-  TFC_ORGANIZATION: Pitangaville
-  TFC_WORKSPACE: appsync-example
+permissions:
+  contents: read
 
 jobs:
-  integration-test:
-    name: Apply + Destroy
+  plan:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - name: Apply integration test, then destroy
+      - name: Queue and inspect exact plan-only run
         env:
           TFC_TOKEN: ${{ secrets.TF_API_TOKEN }}
+          CV: ${{ inputs.configuration_version }}
+          SHA: ${{ inputs.commit_sha }}
         run: |
           set -euo pipefail
-
-          # ---------------------------------------------------------------
-          # Helpers
-          # ---------------------------------------------------------------
-
-          tfc() { curl -sf -H "Authorization: Bearer $TFC_TOKEN" "$@"; }
-
-          # Poll a run until terminal state; approve it if waiting for confirmation.
-          # Usage: wait_for_run <run_id> <label>
-          wait_for_run() {
-            local run_id=$1 label=$2
-            for i in $(seq 1 60); do
-              STATUS=$(tfc "https://app.terraform.io/api/v2/runs/$run_id" \
-                | jq -r '.data.attributes.status')
-              echo "$label [$i/60]: $STATUS"
-              case "$STATUS" in
-                applied|planned_and_finished)
-                  echo "$label: succeeded"
-                  return 0 ;;
-                errored|canceled|force_canceled|discarded)
-                  echo "$label: FAILED ($STATUS)"
-                  return 1 ;;
-                planned|cost_estimated)
-                  echo "$label: approving..."
-                  curl -sf -X POST \
-                    -H "Authorization: Bearer $TFC_TOKEN" \
-                    -H "Content-Type: application/vnd.api+json" \
-                    -d '{"comment":"auto-approved by integration-test workflow"}' \
-                    "https://app.terraform.io/api/v2/runs/$run_id/actions/apply" > /dev/null ;;
-              esac
-              sleep 15
-            done
-            echo "$label: timed out after 15 min"
-            return 1
-          }
-
-          # ---------------------------------------------------------------
-          # 1. Resolve workspace
-          # ---------------------------------------------------------------
-          WS_ID=$(tfc "https://app.terraform.io/api/v2/organizations/$TFC_ORGANIZATION/workspaces/$TFC_WORKSPACE" \
-            | jq -r '.data.id')
-          echo "Workspace: $WS_ID"
-
-          # ---------------------------------------------------------------
-          # 2. Find the VCS-triggered run for this commit (up to 5 min)
-          # ---------------------------------------------------------------
-          COMMIT_SHA="${{ github.sha }}"
-          RUN_ID=""
-          for i in $(seq 1 30); do
-            RUN_ID=$(tfc "https://app.terraform.io/api/v2/workspaces/$WS_ID/runs?page%5Bsize%5D=5" \
-              | jq -r --arg sha "$COMMIT_SHA" \
-                '.data[] | select(.attributes["source-version"] == $sha) | .id' \
-              | head -1)
-            [ -n "$RUN_ID" ] && break
-            echo "Waiting for VCS run to appear... ($i/30)"
-            sleep 10
+          [[ "$CV" =~ ^cv-[A-Za-z0-9]+$ ]]
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]]
+          test -n "$TFC_TOKEN"
+          api() { curl --fail --silent --show-error --max-time 60 -H "Authorization: Bearer $TFC_TOKEN" -H 'Content-Type: application/vnd.api+json' "https://app.terraform.io/api/v2/$1" "${@:2}"; }
+          WS=$(api organizations/Pitangaville/workspaces/appsync-example)
+          jq -e '.data.attributes["execution-mode"] == "remote" and .data.attributes["vcs-repo"].identifier == "pomo-studio/terraform-aws-appsync" and .data.attributes["working-directory"] == "examples/basic"' <<< "$WS" >/dev/null
+          WS_ID=$(jq -r '.data.id' <<< "$WS")
+          CONFIG=$(api "configuration-versions/$CV")
+          jq -e '.data.attributes.status == "uploaded" and .data.attributes.speculative == true' <<< "$CONFIG" >/dev/null
+          # Fail closed if the selected version is not among this workspace's 100 most recent versions.
+          api "workspaces/$WS_ID/configuration-versions?page%5Bsize%5D=100" | jq -e --arg cv "$CV" 'any(.data[]; .id == $cv)' >/dev/null
+          api "configuration-versions/$CV/ingress-attributes" | jq -e --arg sha "$SHA" '.data.attributes["commit-sha"] == $sha' >/dev/null
+          PAYLOAD=$(jq -n --arg ws "$WS_ID" --arg cv "$CV" --arg sha "$SHA" '{data:{type:"runs",attributes:{message:("Reviewed example plan " + $sha),"plan-only":true,"auto-apply":false,"is-destroy":false},relationships:{workspace:{data:{type:"workspaces",id:$ws}},"configuration-version":{data:{type:"configuration-versions",id:$cv}}}}}')
+          RUN_ID=$(api runs -X POST -d "$PAYLOAD" | jq -er '.data.id')
+          echo "Plan: https://app.terraform.io/app/Pitangaville/workspaces/appsync-example/runs/$RUN_ID"
+          for _ in $(seq 1 100); do
+            RUN=$(api "runs/$RUN_ID")
+            STATUS=$(jq -r '.data.attributes.status' <<< "$RUN")
+            case "$STATUS" in
+              planned_and_finished)
+                PLAN_ID=$(jq -er '.data.relationships.plan.data.id' <<< "$RUN")
+                api "plans/$PLAN_ID" | jq -e '.data.attributes | .status == "finished" and .["resource-destructions"] == 0' >/dev/null
+                echo "PASS: exact candidate plan completed without destroys. No apply was performed."
+                exit 0 ;;
+              errored|canceled|force_canceled|discarded) echo "Plan failed: $STATUS"; exit 1 ;;
+            esac
+            sleep 15
           done
-
-          if [ -z "$RUN_ID" ]; then
-            echo "::warning::No run found for commit $COMMIT_SHA — using latest run"
-            RUN_ID=$(tfc "https://app.terraform.io/api/v2/workspaces/$WS_ID/runs?page%5Bsize%5D=1" \
-              | jq -r '.data[0].id')
-          fi
-          echo "Apply run: $RUN_ID"
-
-          # ---------------------------------------------------------------
-          # 3. Wait for apply to succeed
-          # ---------------------------------------------------------------
-          wait_for_run "$RUN_ID" "Apply"
-
-          # ---------------------------------------------------------------
-          # 4. Trigger destroy
-          # ---------------------------------------------------------------
-          echo "Triggering destroy run..."
-          DESTROY_ID=$(curl -sf -X POST \
-            -H "Authorization: Bearer $TFC_TOKEN" \
-            -H "Content-Type: application/vnd.api+json" \
-            -d "{
-              \"data\": {
-                \"attributes\": {
-                  \"message\": \"Auto-destroy after integration test (commit $COMMIT_SHA)\",
-                  \"is-destroy\": true
-                },
-                \"type\": \"runs\",
-                \"relationships\": {
-                  \"workspace\": {\"data\": {\"type\": \"workspaces\", \"id\": \"$WS_ID\"}}
-                }
-              }
-            }" \
-            "https://app.terraform.io/api/v2/runs" \
-            | jq -r '.data.id')
-          echo "Destroy run: $DESTROY_ID"
-
-          # ---------------------------------------------------------------
-          # 5. Wait for destroy to succeed
-          # ---------------------------------------------------------------
-          wait_for_run "$DESTROY_ID" "Destroy"
+          echo "Timed out; inspect the linked plan-only run. No apply will occur."
+          exit 1
