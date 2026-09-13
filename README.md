@@ -121,16 +121,16 @@ Note: when using `enable_dr = true`, pass both `aws` and `aws.dr` provider mappi
 ## Requirements
 
 | Name | Version |
-| ---- | ------- |
+|------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0, < 7.0 |
 
 ## Providers
 
 | Name | Version |
-| ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.63.0 |
-| <a name="provider_aws.dr"></a> [aws.dr](#provider\_aws.dr) | 6.63.0 |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.64.0 |
+| <a name="provider_aws.dr"></a> [aws.dr](#provider\_aws.dr) | 6.64.0 |
 
 ## Modules
 
@@ -139,7 +139,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-| ---- | ---- |
+|------|------|
 | [aws_appsync_api_key.dr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_api_key) | resource |
 | [aws_appsync_api_key.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_api_key) | resource |
 | [aws_appsync_datasource.dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appsync_datasource) | resource |
@@ -175,7 +175,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-| ---- | ----------- | ---- | ------- | :------: |
+|------|-------------|------|---------|:--------:|
 | <a name="input_acm_certificate_arn"></a> [acm\_certificate\_arn](#input\_acm\_certificate\_arn) | ACM certificate ARN for custom domain (must be in same region) | `string` | `null` | no |
 | <a name="input_additional_auth_modes"></a> [additional\_auth\_modes](#input\_additional\_auth\_modes) | Additional authentication modes beyond the primary. Each object needs auth\_type plus optional config for OIDC/Lambda/API\_KEY modes. | <pre>list(object({<br/>    auth_type               = string<br/>    cognito_user_pool_arn   = optional(string)<br/>    oidc_issuer             = optional(string)<br/>    lambda_authorizer_arn   = optional(string)<br/>    lambda_authorizer_ttl   = optional(number, 300)<br/>    lambda_authorizer_regex = optional(string)<br/>  }))</pre> | `[]` | no |
 | <a name="input_api_key_expires_days"></a> [api\_key\_expires\_days](#input\_api\_key\_expires\_days) | Number of days until the API key expires (1-365) | `number` | `365` | no |
@@ -200,7 +200,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-| ---- | ----------- |
+|------|-------------|
 | <a name="output_api_arn"></a> [api\_arn](#output\_api\_arn) | AppSync GraphQL API ARN — use this for IAM policy resource construction |
 | <a name="output_api_id"></a> [api\_id](#output\_api\_id) | AppSync GraphQL API ID — use this to attach resolvers in the calling module |
 | <a name="output_api_key"></a> [api\_key](#output\_api\_key) | API key value. Null if enable\_api\_key = false. |
