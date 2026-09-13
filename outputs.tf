@@ -1,10 +1,10 @@
 output "api_id" {
-  description = "AppSync GraphQL API ID — use this to attach resolvers in the calling module"
+  description = "AppSync GraphQL API ID: use this to attach resolvers in the calling module"
   value       = aws_appsync_graphql_api.this.id
 }
 
 output "api_arn" {
-  description = "AppSync GraphQL API ARN — use this for IAM policy resource construction"
+  description = "AppSync GraphQL API ARN: use this for IAM policy resource construction"
   value       = aws_appsync_graphql_api.this.arn
 }
 
@@ -57,7 +57,7 @@ output "dr_data_source_names" {
 }
 
 output "none_data_source_name" {
-  description = "Name of the always-present None data source — use this for subscription resolvers"
+  description = "Name of the always-present None data source: use this for subscription resolvers"
   value       = aws_appsync_datasource.none.name
 }
 
