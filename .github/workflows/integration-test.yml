@@ -1,8 +1,8 @@
 name: Integration Test
 
+# Runs a real apply and destroy against the appsync-example Terraform Cloud
+# workspace, so it is dispatched deliberately rather than on every push.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 env:
