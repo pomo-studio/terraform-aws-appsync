@@ -2,10 +2,19 @@
 
 All notable changes to this module are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/).
 
-## [1.2.4] - 2026-09-12
+## [1.2.5] - 2026-09-12
 
 ### Added
 - terraform-docs-generated interface documentation in README (Requirements/Providers/Inputs/Outputs) with a CI drift check
+
+### Fixed
+- terraform-docs CI drift check now uses `--output-check` flag compatible with terraform-docs v0.24
+
+## [1.2.4] - 2026-09-12
+
+### Added
+- terraform-docs-generated interface documentation in README (Requirements/Providers/Inputs/Outputs)
+- CI workflow `docs` job for terraform-docs (initially used unsupported `--check` flag)
 
 ## [1.2.3] - 2026-09-05
 
@@ -125,6 +134,7 @@ All users should upgrade to v1.0.2 to benefit from the improved ARN validation. 
 
 > Historical releases are documented in [GitHub Releases](https://github.com/pomo-studio/terraform-aws-appsync/releases).
 
+[1.2.5]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.2.4...v1.2.5
 [1.2.4]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/pomo-studio/terraform-aws-appsync/compare/v1.2.1...v1.2.2

@@ -120,4 +120,4 @@ jobs:
           working-dir: .
           output-file: README.md
           output-method: inject
-          args: --check
+          args: --output-check
