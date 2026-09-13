@@ -7,25 +7,27 @@
 
 Opinionated Terraform module for AWS AppSync GraphQL APIs.
 
-- Cognito + AWS_IAM + API_KEY + OIDC + Lambda authorizer in any combination — one `additional_auth_modes` list
-- Per-table least-privilege IAM roles for DynamoDB data sources — never a shared policy
-- NoneDataSource always created — subscriptions work without extra setup
+- Cognito + AWS_IAM + API_KEY + OIDC + Lambda authorizer in any combination: one `additional_auth_modes` list
+- Per-table least-privilege IAM roles for DynamoDB data sources: never a shared policy
+- NoneDataSource always created: subscriptions work without extra setup
 - CloudWatch logging and X-Ray tracing on by default
 - Optional DR API skeleton via `enable_dr` + `aws.dr` provider alias
 - Optional DR parity data sources (`dr_dynamodb_data_sources`, `dr_lambda_data_sources`, `dr_http_data_sources`)
-- Resolvers stay in the calling module — this module handles plumbing only
+- Resolvers stay in the calling module: this module handles plumbing only
 
 **Registry**: `pomo-studio/appsync/aws`
 
 ## What it creates
 
 **Always:**
+
 - `aws_appsync_graphql_api` with schema supplied by the caller
-- CloudWatch log group + IAM role (logging on by default — people always forget this)
-- `NoneDataSource` — always present, required for subscriptions
+- CloudWatch log group + IAM role (logging on by default: people always forget this)
+- `NoneDataSource`: always present, required for subscriptions
 - X-Ray tracing enabled by default
 
 **Conditional:**
+
 - Cognito User Pool auth (when `cognito_user_pool_arn` set)
 - Additional auth modes: AWS_IAM, API_KEY, OIDC, Lambda
 - API key resource (when `enable_api_key = true`)
@@ -34,7 +36,7 @@ Opinionated Terraform module for AWS AppSync GraphQL APIs.
 - HTTP data sources
 - Custom domain + Route53 record
 
-The module handles plumbing only. Resolvers stay in the calling module — they're always app-specific.
+The module handles plumbing only. Resolvers stay in the calling module: they're always app-specific.
 
 ## Usage
 
@@ -85,7 +87,7 @@ module "appsync" {
   tags = { Environment = var.env }
 }
 
-# Attach resolvers — these are always app-specific
+# Attach resolvers: these are always app-specific
 resource "aws_appsync_resolver" "get_user" {
   api_id      = module.appsync.api_id
   type        = "Query"
@@ -116,6 +118,46 @@ resource "aws_iam_role_policy" "lambda_appsync" {
 ```
 
 Note: when using `enable_dr = true`, pass both `aws` and `aws.dr` provider mappings in the module block.
+
+## Design decisions
+
+- Logging **on** by default at `ERROR` level
+- X-Ray **on** by default
+- Per-data-source IAM roles (never a shared policy)
+- `NoneDataSource` always created
+- `realtime_url` always in outputs (subscriptions are first-class)
+- `enable_dr` creates a secondary API and optional DR parity data sources; resolvers remain caller-owned
+- Caller owns resolvers: module handles plumbing only
+
+## HA parity contract (Level 2)
+
+When `enable_dr = true`, parity means:
+
+1. Two APIs exist with the same schema/auth baseline (primary + DR).
+2. Caller may provide equivalent DR data sources using `dr_*_data_sources` maps.
+3. Resolvers are still app-owned and must be attached to both APIs by the caller.
+
+What this module does not decide:
+
+- endpoint failover policy for clients,
+- active-active conflict semantics,
+- app-specific resolver rollout order.
+
+## Level 3 operations
+
+- DR enablement quickstart: [`docs/enable-dr.md`](docs/enable-dr.md)
+- Failover strategy and runbook: [`docs/ha-failover.md`](docs/ha-failover.md)
+- Smoke helper script: `scripts/smoke-failover.sh`
+
+## Examples
+
+- [`examples/basic`](examples/basic/): Cognito auth, single DynamoDB source
+- [`examples/dr-parity`](examples/dr-parity/): dual-region API with parity data source maps
+
+## Reference
+
+<details>
+<summary>Reference</summary>
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -201,8 +243,8 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_api_arn"></a> [api\_arn](#output\_api\_arn) | AppSync GraphQL API ARN — use this for IAM policy resource construction |
-| <a name="output_api_id"></a> [api\_id](#output\_api\_id) | AppSync GraphQL API ID — use this to attach resolvers in the calling module |
+| <a name="output_api_arn"></a> [api\_arn](#output\_api\_arn) | AppSync GraphQL API ARN: use this for IAM policy resource construction |
+| <a name="output_api_id"></a> [api\_id](#output\_api\_id) | AppSync GraphQL API ID: use this to attach resolvers in the calling module |
 | <a name="output_api_key"></a> [api\_key](#output\_api\_key) | API key value. Null if enable\_api\_key = false. |
 | <a name="output_api_key_id"></a> [api\_key\_id](#output\_api\_key\_id) | API key ID. Null if enable\_api\_key = false. |
 | <a name="output_api_url"></a> [api\_url](#output\_api\_url) | HTTPS GraphQL endpoint |
@@ -219,44 +261,11 @@ No modules.
 | <a name="output_dr_realtime_url"></a> [dr\_realtime\_url](#output\_dr\_realtime\_url) | Secondary region WebSocket endpoint when enable\_dr = true |
 | <a name="output_graphql_field_arn_prefix"></a> [graphql\_field\_arn\_prefix](#output\_graphql\_field\_arn\_prefix) | Base ARN prefix for GraphQL field IAM resources (append /Mutation/fields/Name, etc.) |
 | <a name="output_log_group_name"></a> [log\_group\_name](#output\_log\_group\_name) | CloudWatch log group name. Null if enable\_logging = false. |
-| <a name="output_none_data_source_name"></a> [none\_data\_source\_name](#output\_none\_data\_source\_name) | Name of the always-present None data source — use this for subscription resolvers |
+| <a name="output_none_data_source_name"></a> [none\_data\_source\_name](#output\_none\_data\_source\_name) | Name of the always-present None data source: use this for subscription resolvers |
 | <a name="output_realtime_url"></a> [realtime\_url](#output\_realtime\_url) | WebSocket (wss://) endpoint for AppSync subscriptions |
 <!-- END_TF_DOCS -->
 
-## Design decisions
-
-- Logging **on** by default at `ERROR` level
-- X-Ray **on** by default
-- Per-data-source IAM roles (never a shared policy)
-- `NoneDataSource` always created
-- `realtime_url` always in outputs (subscriptions are first-class)
-- `enable_dr` creates a secondary API and optional DR parity data sources; resolvers remain caller-owned
-- Caller owns resolvers — module handles plumbing only
-
-## HA parity contract (Level 2)
-
-When `enable_dr = true`, parity means:
-
-1. Two APIs exist with the same schema/auth baseline (primary + DR).
-2. Caller may provide equivalent DR data sources using `dr_*_data_sources` maps.
-3. Resolvers are still app-owned and must be attached to both APIs by the caller.
-
-What this module does not decide:
-
-- endpoint failover policy for clients,
-- active-active conflict semantics,
-- app-specific resolver rollout order.
-
-## Level 3 operations
-
-- DR enablement quickstart: [`docs/enable-dr.md`](docs/enable-dr.md)
-- Failover strategy and runbook: [`docs/ha-failover.md`](docs/ha-failover.md)
-- Smoke helper script: `scripts/smoke-failover.sh`
-
-## Examples
-
-- [`examples/basic`](examples/basic/) — Cognito auth, single DynamoDB source
-- [`examples/dr-parity`](examples/dr-parity/) — dual-region API with parity data source maps
+</details>
 
 ## License
 
