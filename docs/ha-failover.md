@@ -5,10 +5,12 @@ This document defines operational HA behavior for consumers of `pomo-studio/apps
 ## Scope
 
 Module responsibilities:
+
 - provision primary + DR AppSync APIs (`enable_dr = true`)
 - expose endpoints and datasource names for both regions
 
 Consumer responsibilities:
+
 - create resolver parity in both APIs
 - choose endpoint failover policy in clients
 - run failover/recovery drills
